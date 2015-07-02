@@ -15,9 +15,13 @@ function printValue(sliderID, textbox) {
 
 // Get Post Data
 function get_post(func, data, callback) {
+    get_server_post(generateAPIUrl(func), data, callback);
+}
+
+function get_server_post(url, data, callback) {
     $.ajax({
         type: "POST",
-        url: generateAPIUrl(func),
+        url: url,
         data: data,
         success: function(object) { callback(jQuery.parseJSON(object)) }
         //headers: {'X-Requested-With': 'XMLHttpRequest'}
@@ -261,7 +265,7 @@ $(document).ready(function(){
 
     function login(){
         logout_flag = false;
-        get_post("/client.php", {}, function(data){
+        get_server_post("/client.php", {}, function(data){
             if ( data.success ) {
                 $('#onClickPrinting #next-btn').trigger('click');
 
@@ -299,7 +303,7 @@ $(document).ready(function(){
                 $("p.soft_data span.username").text( temp_hash.substring(0,temp_hash.indexOf("&")) );
                 $("p.soft_data span.password").text( temp_hash.substring(temp_hash.indexOf("=") + 1) );
 
-                get_post("/client.php?files=true", {
+                get_server_post("/client.php?files=true", {
                     'email': client_email,
                     'session': user_token
                 }, upload_after);
