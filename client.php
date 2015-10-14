@@ -38,8 +38,15 @@ if ( !isset($_GET['files']) ){
     //upload file
     $file_name_with_full_path = realpath("1.stl");
     $email = "";
+
+    $file = null;
+    if(class_exists('CURLFile')) // PHP >=5.5
+        $file = new CurlFile($file_name_with_full_path, 'application/sla', '1.stl');
+    else // Older PHP versions
+        $file = '@'.$file_name_with_full_path;
+
     $post_data = array(
-        'file'=>'@'.$file_name_with_full_path,
+        'file'=>$file,
         'name'=>'1.stl',
         'email'=>$_POST['email'],
         'session'=>$_POST['session'],
