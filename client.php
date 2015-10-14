@@ -14,7 +14,7 @@ $upload_file_url = $config['url'] . "api/" . $config['type'] . "/upload/";
 //prepare request
 $curlsession = curl_init();
 if (!$curlsession) {
-    return ERROR_HTTPERROR;
+    return 'Some error';
 }
 curl_setopt($curlsession, CURLOPT_HTTPHEADER, array('Content-Type: multipart/form-data'));
 curl_setopt($curlsession, CURLOPT_REFERER, "http://" . $_SERVER['HTTP_HOST']);
@@ -40,10 +40,13 @@ if ( !isset($_GET['files']) ){
     $email = "";
 
     $file = null;
-    if(class_exists('CURLFile')) // PHP >=5.5
-        $file = new CurlFile($file_name_with_full_path, 'application/sla', '1.stl');
-    else // Older PHP versions
-        $file = '@'.$file_name_with_full_path;
+    if(class_exists('CURLFile')) {
+        // PHP >=5.5
+        $file = new CURLFile($file_name_with_full_path, 'application/sla', '1.stl');
+    } else {
+        // Older PHP versions
+        $file = '@' . $file_name_with_full_path;
+    }
 
     $post_data = array(
         'file'=>$file,
