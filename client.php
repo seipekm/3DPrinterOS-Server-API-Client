@@ -1,72 +1,59 @@
 <?php
 
-$config = array(
-    'url' => 'our_website_host',
-    'type' => 'enter_your_api_name',
-    'token' => 'enter_your_token',
-    'email' => 'end_part_of_your_email'
-);
+set_time_limit(0);
 
-//urls
-$create_user_url = $config['url'] . "api/" . $config['type'] . "/create_user/";
-$upload_file_url = $config['url'] . "api/" . $config['type'] . "/upload/";
+require_once 'classes/config.class.php';
+require_once 'classes/client.class.php';
+require_once 'classes/response.class.php';
 
-//prepare request
-$curlsession = curl_init();
-if (!$curlsession) {
-    return 'Some error';
-}
-curl_setopt($curlsession, CURLOPT_HTTPHEADER, array('Content-Type: multipart/form-data'));
-curl_setopt($curlsession, CURLOPT_REFERER, "http://" . $_SERVER['HTTP_HOST']);
-curl_setopt($curlsession, CURLOPT_POST, true);
-curl_setopt($curlsession, CURLOPT_HEADER, false);
-curl_setopt($curlsession, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($curlsession, CURLOPT_BINARYTRANSFER, true);
-curl_setopt($curlsession, CURLOPT_CRLF, false);
-curl_setopt($curlsession, CURLOPT_MAXREDIRS, 10);
+$config = new Config(realpath(dirname(__FILE__) . '/config/parameters.ini'));
+$client = new Client($config);
 
-if ( !isset($_GET['files']) ){
-    //generate token
-    $email = "printeros" . time() . "@" . $config['email'];
-    $post_data = array(
-        'email' => $email,
-        'token' => $config['token']
-    );
+$method = isset($_POST['method']) ? $_POST['method'] : null;
+try {
+    $code = null;
+    switch ($method) {
+        case 'create_session': {
+            $result = $client->createSession($client->generateEmail());
+        }
+            break;
 
-    curl_setopt($curlsession, CURLOPT_URL, $create_user_url);
-} else {
-    //upload file
-    $file_name_with_full_path = realpath("1.stl");
-    $email = "";
+        case 'upload': {
+            if (empty($_FILES[0]) || empty($_POST['session']) || empty($_POST['email'])) {
+                throw new Exception('Invalid request data');
+            }
+            $name = $_FILES[0]['file']['name'];
+            $tempFile = $_FILES[0]['file']['tmp_name'];
+            $result = $client->uploadFile($_POST['email'], $_POST['session'], $tempFile, $name);
+        }
+            break;
 
-    $file = null;
-    if(class_exists('CURLFile')) {
-        // PHP >=5.5
-        $file = new CURLFile($file_name_with_full_path, 'application/sla', '1.stl');
-    } else {
-        // Older PHP versions
-        $file = '@' . $file_name_with_full_path;
+        case 'static_upload': {
+            if (empty($_POST['session']) || empty($_POST['email'])) {
+                throw new Exception('Invalid request data');
+            }
+            $filePath = realpath(dirname(__FILE__) . '/public/1.' . $_POST['file_type']);
+            $result = $client->uploadFile($_POST['email'], $_POST['session'], $filePath, 'example.stl');
+        }
+            break;
+
+        default: {
+            $code = 400;
+            $result = array(
+                'error' => true,
+                'message' => 'Bad Request'
+            );
+        }
     }
 
-    $post_data = array(
-        'file'=>$file,
-        'name'=>'1.stl',
-        'email'=>$_POST['email'],
-        'session'=>$_POST['session'],
-        'token' => $config['token']
-    );
+    //Send response
+    $response = new Response($result, $code);
+    $response->send();
 
-    curl_setopt($curlsession, CURLOPT_URL, $upload_file_url);
+} catch (Exception $e) {
+    $response = new Response(array(
+        'error' => true,
+        'message' => $e->getMessage()
+    ), 500);
+    $response->send();
 }
-
-curl_setopt($curlsession, CURLOPT_POSTFIELDS, $post_data);
-$data = curl_exec($curlsession);
-
-#add generated email
-if ($email) {
-    $data = json_decode($data);
-    $data->result->email = $email;
-    $data = json_encode($data);
-}
-
-echo ($data);

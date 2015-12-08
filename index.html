@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>One click printing</title>
+    <!-- Bootstrap -->
+    <link href="/public/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/public/css/style.css" rel="stylesheet">
+</head>
+<body onload="afterLoad()" class="gray-bg">
+<div class="container" id="api-print-container">
+
+    <div class="row" id="cloud_auth">
+        <div class="col-md-2 col-md-offset-4 col-sm-2 col-sm-offset-4  text-center">
+            <h4>Authorization...</h4>
+            <img class="img-responsive full-ico" src="public/images/cloud_auth_anim.svg">
+        </div>
+    </div>
+
+    <div class="row" id="upload_file" style="display: none">
+        <div class="ol-md-2 col-md-offset-4 col-sm-2 col-sm-offset-4  text-center">
+            <h4>Upload file...</h4>
+            <img class="img-responsive full-ico" src="public/images/loading_anim.svg">
+        </div>
+    </div>
+
+
+    <div class="ibox api-box" style="display: none">
+        <div class="ibox-title">
+            <h5>3DPrinterOS printer streaming</h5>
+            <div class="ibox-tools">
+               <span class="logo">
+                   <img class="svg" src="public/images/logo_grey.svg">
+               </span>
+            </div>
+        </div>
+        <div class="ibox-nav">
+            <ul class="nav nav-wizard">
+                <li class="nav-1 active"><a href="#">Upload</a></li>
+                <li class="nav-2"><a href="#">Printer Settings</a></li>
+                <li class="nav-3"><a href="#">Prepare</a></li>
+                <li class="nav-4"><a href="#">Print</a></li>
+                <li class="nav-5"><a href="#">Finish!</a></li>
+            </ul>
+        </div>
+        <div class="ibox-content">
+            <!-- Choose printer type -->
+            <div class="row step hidden" id="step-1">
+                <div class="col-md-3 text-center big-ico">
+                    <img class="svg" src="public/images/sart_print.svg">
+                </div>
+                <div class="col-md-9 b-l">
+                    <div class="row m-b-lg">
+                        <form class="form-group" id="select-printer">
+                            <div class="col-md-4">
+                                <select style="display: none" class="form-control" name="printer" id="printers">
+                                    <option>Printer not defined</option>
+                                </select>
+
+                                <select class="form-control" id="clientLink"></select>
+
+                            </div>
+                            <div class="col-md-8">
+                                <button type="button" class="btn btn-warning btn-download-client">Download the client</button>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="form-group">
+                        <div class="row no-client-text">
+                            <div class="col-md-1">
+                               <img class="small-ico-svg-33" src="public/images/explanation_small.svg">
+                            </div>
+                            <div class="col-md-7">
+                                <p>
+                                    If you’ve already installed 3DPrinterOS on your computer, please start it now
+                                </p>
+                            </div>
+                        </div>
+                        <div class="row connect-client-text" style="display: none">
+                            <div class="col-md-1">
+                                <img class="small-ico-svg-33" src="public/images/explanation_small.svg">
+                            </div>
+                            <div class="col-md-7">
+                                <p>
+                                    If you downloaded, installed and started 3DPrinterOS
+                                    software and nothing happened
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slice settings -->
+            <div class="row step hidden" id="step-2">
+                <div class="col-md-3 text-center big-ico">
+                    <img class="svg" src="public/images/slising_options.svg">
+                </div>
+                <div class="col-md-9 b-l">
+                    <div class="row">
+                        <div class="col-md-12 slicer_settings">
+                            <form class="form-horizontal">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="col-sm-4 control-label">Size</label>
+                                            <div class="col-sm-8">
+                                                <div class="input-group">
+                                                    <input class="form-control" type="text" json-anchor="filament_diameter" />
+                                                    <span class="input-group-addon">
+                                                        <small>mm</small>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="col-sm-4 control-label">Nozzle diameter</label>
+                                            <div class="col-sm-8">
+                                                <div class="input-group">
+                                                    <input class="form-control" type="text" json-anchor="nozzle_size" />
+                                                    <span class="input-group-addon">
+                                                        <small>mm</small>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="col-sm-4 control-label">Filament flow</label>
+                                            <div class="col-sm-8">
+                                                <div class="input-group">
+                                                    <input class="form-control" type="text" json-anchor="filament_flow" />
+                                                    <span class="input-group-addon">
+                                                        <small>%</small>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="col-sm-4 control-label">Supports</label>
+                                            <div class="col-sm-8">
+                                                <select class="form-control" json-anchor="support">
+                                                    <option value="None">None</option>
+                                                    <option value="Touching buildplate">Touch b.plate</option>
+                                                    <option value="Everywhere">Everywhere</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="col-sm-4 control-label">Platf. adhesion</label>
+                                            <div class="col-sm-8">
+                                                <select class="form-control" json-anchor="platform_adhesion">
+                                                    <option value="None">None</option>
+                                                    <option value="Raft">Raft</option>
+                                                    <option value="Brim">Brim</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="col-sm-4 control-label">Brim line amount</label>
+                                            <div class="col-sm-8">
+                                                <input class="form-control" json-anchor="brim_line_count" />
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="col-sm-4 control-label">Layer thickness</label>
+                                            <div class="col-sm-8">
+                                                <div class="input-group">
+                                                    <input class="form-control" type="text" json-anchor="layer_height" />
+                                                    <span class="input-group-addon">
+                                                        <small>mm</small>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="col-sm-4 control-label">Shell thickness</label>
+                                            <div class="col-sm-8">
+                                                <div class="input-group">
+                                                    <input class="form-control" type="text" json-anchor="wall_thickness" />
+                                                    <span class="input-group-addon">
+                                                        <small>mm</small>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="col-sm-4 control-label">Bottom/top thick</label>
+                                            <div class="col-sm-8">
+                                                <div class="input-group">
+                                                    <input class="form-control" type="text" json-anchor="solid_layer_thickness" />
+                                                    <span class="input-group-addon">
+                                                        <small>mm</small>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="col-sm-4 control-label">Infill</label>
+                                            <div class="col-sm-8">
+                                                <div class="input-group">
+                                                    <input class="form-control" type="text" json-anchor="fill_density" />
+                                                    <span class="input-group-addon">
+                                                        <small>%</small>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="col-sm-4 control-label">Bottom layer speed</label>
+                                            <div class="col-sm-8">
+                                                <div class="input-group">
+                                                    <input class="form-control" type="text" json-anchor="bottom_layer_speed" />
+                                                    <span class="input-group-addon">
+                                                        <small>mm/sec</small>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="col-sm-4 control-label">Print speed</label>
+                                            <div class="col-sm-8">
+                                                <div class="input-group">
+                                                    <input class="form-control" type="text" json-anchor="print_speed" />
+                                                    <span class="input-group-addon">
+                                                        <small>mm/sec</small>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="col-sm-4 control-label">Traveling speed</label>
+                                            <div class="col-sm-8">
+                                                <div class="input-group">
+                                                    <input class="form-control" type="text" json-anchor="travel_speed" />
+                                                    <span class="input-group-addon">
+                                                        <small>mm/sec</small>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="col-sm-4 control-label">Traveling speed</label>
+                                            <div class="col-sm-8">
+                                                <div class="input-group">
+                                                    <input class="form-control" type="text" json-anchor="travel_speed" />
+                                                    <span class="input-group-addon">
+                                                        <small>mm/sec</small>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="col-sm-4 control-label">Retraction distance</label>
+                                            <div class="col-sm-8">
+                                                <div class="input-group">
+                                                    <input class="form-control" type="text" json-anchor="retraction_amount" />
+                                                    <span class="input-group-addon">
+                                                        <small>mm</small>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="slice-extruder" class="col-sm-4 control-label">Extruder</label>
+                                            <div class="col-sm-8">
+                                                <select id="slice-extruder" name="extruder" class="form-control">
+                                                    <option value="Right">Right</option>
+                                                    <option value="Left">Left</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="col-sm-4 control-label">Extruder</label>
+                                            <div class="col-sm-8">
+                                                <div class="input-group">
+                                                    <input class="form-control" type="text" json-anchor="print_temperature" />
+                                                    <span class="input-group-addon">
+                                                        <small>C</small>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="col-sm-4 control-label">Heated bed</label>
+                                            <div class="col-sm-8">
+                                                <div class="input-group">
+                                                    <input class="form-control" type="text" json-anchor="print_bed_temperature" />
+                                                    <span class="input-group-addon">
+                                                        <small>C</small>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="checkbox">
+                                            <label>
+                                                <input id="slice-cooling-fan" json-anchor="fan_enabled" type="checkbox" checked> Cooling fan
+                                            </label>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="col-sm-4 control-label">Min layer time</label>
+                                            <div class="col-sm-8">
+                                                <div class="input-group">
+                                                    <input class="form-control" type="text" json-anchor="cool_min_layer_time" />
+                                                    <span class="input-group-addon">
+                                                        <small>s</small>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Choose printer type -->
+            <div class="row step hidden" id="step-3">
+                <div class="col-md-3 text-center big-ico">
+                    <img class="svg" src="public/images/magic_big.svg">
+                </div>
+                <div class="col-md-9 b-l">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="progress progress-striped active" id="prepare-progress">
+                                <div style="width: 0%" class="progress-bar progress-bar-striped magic_fix">
+                                    <span class="sr-only">30% Complete (success)</span>
+                                </div>
+                                <div style="width: 0%" class="progress-bar progress-bar-warning slice">
+                                    <span class="sr-only">15% Complete (warning)</span>
+                                </div>
+                                <div style="width: 0%" class="progress-bar progress-bar-finish finish">
+                                    <span class="sr-only">40% Complete (danger)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h4 id="prepare-step" class="m-b"></h4>
+                        </div>
+                    </div>
+
+                    <div class="row class-svg-op">
+                        <div class="col-md-4">
+                            <img class="small-ico-svg-33 fix_small" src="public/images/fix_small.svg">
+                            <span class="m-l-md">Preparing</span>
+                        </div>
+                        <div class="col-md-4">
+                            <img class="small-ico-svg-33 slice_small" src="public/images/slice_small.svg">
+                            <span class="m-l-md">Slicing</span>
+                        </div>
+                        <div class="col-md-4">
+                            <img class="small-ico-svg-33 download_small" src="public/images/finish_small.svg">
+                            <span class="m-l-md">Finishing</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Printing progress -->
+            <div class="row step hidden" id="step-4">
+                <div class="col-md-3 text-center big-ico">
+                    <img class="svg" src="public/images/printing_anim.svg">
+                </div>
+                <div class="col-md-9 b-l">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="progress progress-striped active" id="print-progress">
+                                <div style="width: 0%" class="progress-bar progress-bar-downloading">
+                                    <span class="sr-only">30% Complete (success)</span>
+                                </div>
+                                <div style="width: 0%" class="progress-bar progress-bar-heating">
+                                    <span class="sr-only">15% Complete (warning)</span>
+                                </div>
+                                <div style="width: 0%" class="progress-bar progress-bar-striped">
+                                    <span class="sr-only">40% Complete (danger)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <span class="m-b-md d-block">Printing progress:</span>
+                        </div>
+                    </div>
+
+
+                    <div class="row">
+
+                        <div class="col-md-4">
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <img class="small-ico-svg-33 download_small" src="public/images/heatbed_small.svg">
+                                </div>
+                                <div class="col-md-10" id="statusTemp">
+                                    <p class="m-b-1"><span>Extruder Temp: </span><span>237/235C</span></p>
+                                    <p><span>Heatbed Temp: </span><span>100/20h</span></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <img class="small-ico-svg-33 download_small" src="public/images/clock.svg">
+                                </div>
+                                <div class="col-md-10">
+                                    <p class="m-b-1"><span id="time-left">Time left: </span><span id="end-time-print"></span></p>
+                                    <p>Time Spent:  <span id="spend-time-print"></span></p>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <label><strong>Logs</strong></label>
+                            <textarea id="print-logs" class="form-control" rows="4"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row step hidden" id="step-5">
+                <div class="col-md-3 text-center big-ico">
+                    <img class="svg" src="public/images/finished_big.svg">
+                </div>
+                <div class="col-md-9 b-l">
+                    <h3 class="text-center m-b-md">Success! Your print is finished. </h3>
+                    <div class="row">
+                        <div class="col-md-12 text-center m-b-md">
+                            <img class="small-ico-svg-82 m-r-md hover hover-opacity" src="public/images/no_medium.svg">
+                            <img class="small-ico-svg-82 hover hover-opacity" src="public/images/yes_medium.svg">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 col-md-offset-3">
+                            <textarea rows="5" class="form-control"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <div class="ibox-footer text-right">
+            <span class="pull-left">
+                  <img src="public/images/svg4.svg" class="small-ico-svg status-printer">
+                <strong id="status-label" class="text-warning">Connecting Printer...</strong>
+            </span>
+
+            <button type="button" class="btn btn-warning hidden" id="button-back">Back</button>
+            <button type="button" class="btn btn-primary hidden" id="button-next" disabled>Next</button>
+            <button type="button" class="btn btn-primary hidden" id="button-print">Print</button>
+            <button type="button" class="btn btn-warning hidden" id="button-print-again">Print again</button>
+
+            <button class="btn btn-primary" id="resume" style="display: none;">Resume</button>
+            <button class="btn btn-danger" id="cancel" style="display: none">Cancel</button>
+            <button class="btn btn-primary" id="pause" style="display: none">Pause</button>
+
+
+        </div>
+    </div>
+</div>
+
+
+
+<script src="/public/js/vendor/jquery/jquery-2.1.1.min.js"></script>
+<script src="/public/js/vendor/bootstrap/bootstrap.min.js"></script>
+<script src="/public/js/api.js"></script>
+<script src="/public/js/binder.js"></script>
+<script src="/public/js/wizard.js"></script>
+<script src="/public/js/client.js"></script>
+
+</body>
+</html>
